@@ -50,10 +50,14 @@ class DBCache(object):
 
     def __load_file(self, file_name):
         path = util.path_stitch(self.dir_path, file_name)
-        with open(path, 'r') as f:
-            tar = json.load(f)
-            self.__files[file_name] = tar 
-            self.__locks[file_name] = threading.Lock()
+        try:
+            with open(path, 'r') as f:
+                tar = json.load(f)
+                self.__files[file_name] = tar 
+                self.__locks[file_name] = threading.Lock()
+            return True
+        except IOError:
+            return False
 
     def __flush_file(self, file_name):
         d = self.__files.get(file_name, None)
@@ -64,7 +68,7 @@ class DBCache(object):
             json.dump(d, f, indent=4)
     
     def __cycle_flush(self):
-        print 'flushing'
+        # print 'flushing'
         self.__last_updates_lock.acquire()
         vlu = self.__last_updates
         self.__last_updates = []
@@ -77,7 +81,9 @@ class DBCache(object):
     def open(self, file_name):
         d = self.__files.get(file_name, None)
         if d is None:
-            d = self.__load_file(file_name)
+            if not self.__load_file(file_name):
+                return None 
+            d = self.__files[file_name]
         return JsonFile(self, file_name, d)
     
     def create(self, file_name):

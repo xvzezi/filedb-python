@@ -9,7 +9,7 @@
 #   2021-7-16 init design
 ###########################
 
-from cache import JsonFile
+from .cache import JsonFile
 
 class FilterType:
     EQUAL =    0
@@ -135,6 +135,9 @@ class Table(object):
         self.file.release()
         return 
 
+    def need_init(self):
+        return self.meta is None 
+
     def init_new_table(self, configs = {
         'unique':['id', 'name']}):
         if self.meta:
@@ -192,6 +195,36 @@ class Table(object):
         # print self.file.data
         return True
 
+    def update(self, data):
+        # 1. check meta file
+        for m in self.unique:
+            if data.get(m, None) is None:
+                print 'unique', m, 'not found'
+                return False 
+        
+        # 2. find the target
+        query = {}
+        for m in self.unique:
+            query[m] = Filter.EQUAL(data[m])
+        self.file.lock()
+        for k in xrange(len(self.file.data['data'])):
+            o = self.file.data['data'][k]
+            is_ok = True
+            for i in query:
+                kv = o.get(i, None)
+                if kv is None:
+                    is_ok = False
+                    break
+                if not query[i].eval(kv):
+                    is_ok = False
+                    break 
+            if is_ok:
+                self.file.data['data'][k] = data 
+                break 
+        self.file.release()
+        self.file.flush()
+        return True
+
     def remove(self, conds):
         # type: (dict[str,Filter]) -> any
         res = []
@@ -209,7 +242,6 @@ class Table(object):
                     break 
             if is_ok:
                 res.append(k)
-        print res
         for i in xrange(len(res)-1, -1, -1):
             del self.file.data['data'][res[i]]
         self.file.release()
@@ -252,6 +284,12 @@ if __name__ == "__main__":
     })
     print t.find({
         'name':Filter.EQUAL('woaini')
+    })
+    t.update({
+        'id':123,
+        'name':'woaini',
+        'value':'k1',
+        'hah':0
     })
     print 'remove'
     t.remove({
