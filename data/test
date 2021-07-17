@@ -1,3 +1,20 @@
 {
-    "test": 1
+    "data": [
+        {
+            "id": 123, 
+            "value": "k", 
+            "name": "woaini"
+        }, 
+        {
+            "id": 456, 
+            "value": "k", 
+            "name": "woaini2"
+        }
+    ], 
+    "__meta": {
+        "unique": [
+            "id", 
+            "name"
+        ]
+    }
 }

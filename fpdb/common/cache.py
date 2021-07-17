@@ -17,7 +17,7 @@ import util
 class JsonFile(object):
     def __init__(self, cache, filename, data):
         super(JsonFile, self).__init__()
-        self.data = data 
+        self.data = data    # type: dict
         self.cache = cache # type: DBCache
         self.filename = filename # type: str
     
@@ -27,10 +27,13 @@ class JsonFile(object):
     def release(self):
         self.cache.unlock_file(self.filename)
 
-    def close(self):
+    def flush(self):
         self.lock()
         self.cache.flush_file(self.filename, self.data)
         self.release()        
+
+    def close(self):
+        self.flush()
 
 class DBCache(object):
 
@@ -102,6 +105,7 @@ class DBCache(object):
             l.release()
 
     def shutdown(self):
+        time.sleep(self.interval * 2)
         self.timer.cancel()
 
 if __name__ == "__main__":
