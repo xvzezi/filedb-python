@@ -10,12 +10,9 @@
 ###########################
 
 """ Usage
-1. db = FPDB(path)
-2. table = db.Find('table')
-3. model = table.Create({'key':''})
-4. model = table.Find('key')
-5. model.attr = value
-6. model.update()
+see: basic.py
+see: common.table.py
+see: common.cache.py
 """
 
 from .common import cache
